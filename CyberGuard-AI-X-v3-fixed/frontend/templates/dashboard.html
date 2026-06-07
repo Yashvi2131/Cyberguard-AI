@@ -1,0 +1,1376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CyberGuard AI X — Dashboard</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg-primary: #050510;
+    --bg-secondary: #0a0a1e;
+    --bg-card: #0d0d2b;
+    --bg-card2: #080820;
+    --accent-green: #00ff88;
+    --accent-blue: #00b4ff;
+    --accent-red: #ff4444;
+    --accent-yellow: #ffcc00;
+    --accent-purple: #aa66ff;
+    --text-primary: #e0e0ff;
+    --text-muted: #7070a0;
+    --border-color: #1a1a3e;
+    --sidebar-width: 260px;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: var(--bg-primary); font-family: 'Segoe UI', system-ui, sans-serif; color: var(--text-primary); display: flex; min-height: 100vh; }
+
+  /* Sidebar */
+  .sidebar {
+    width: var(--sidebar-width);
+    background: var(--bg-secondary);
+    border-right: 1px solid var(--border-color);
+    display: flex; flex-direction: column;
+    position: fixed; height: 100vh; z-index: 100;
+    overflow-y: auto;
+  }
+  .sidebar-brand {
+    padding: 20px;
+    border-bottom: 1px solid var(--border-color);
+    display: flex; align-items: center; gap: 12px;
+  }
+  .sidebar-brand-icon {
+    width: 42px; height: 42px;
+    background: linear-gradient(135deg, #001830, #003060);
+    border: 1px solid var(--accent-blue);
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--accent-blue); font-size: 18px;
+    box-shadow: 0 0 15px rgba(0,180,255,0.3);
+  }
+  .sidebar-brand-text { font-size: 0.85rem; font-weight: 700; letter-spacing: 1px; color: var(--text-primary); }
+  .sidebar-brand-sub { font-size: 0.62rem; color: var(--text-muted); letter-spacing: 0.5px; }
+
+  .nav-section-title {
+    padding: 16px 20px 6px;
+    font-size: 0.6rem;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    font-weight: 600;
+  }
+  .nav-item { padding: 2px 12px; }
+  .nav-link {
+    display: flex; align-items: center; gap: 12px;
+    padding: 11px 14px;
+    border-radius: 10px;
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: 0.875rem;
+    transition: all 0.2s;
+    cursor: pointer;
+  }
+  .nav-link:hover { background: rgba(0,180,255,0.08); color: var(--accent-blue); }
+  .nav-link.active {
+    background: linear-gradient(135deg, rgba(0,30,60,0.8), rgba(0,50,100,0.6));
+    color: var(--accent-blue);
+    border: 1px solid rgba(0,180,255,0.2);
+    box-shadow: 0 0 15px rgba(0,180,255,0.1);
+  }
+  .nav-link i { width: 18px; text-align: center; font-size: 14px; }
+  .nav-badge {
+    margin-left: auto;
+    padding: 2px 7px;
+    border-radius: 20px;
+    font-size: 0.65rem;
+    background: rgba(255,68,68,0.2);
+    color: var(--accent-red);
+    border: 1px solid rgba(255,68,68,0.3);
+  }
+
+  .sidebar-footer {
+    margin-top: auto;
+    padding: 16px;
+    border-top: 1px solid var(--border-color);
+  }
+  .user-info {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 12px;
+    background: var(--bg-card);
+    border-radius: 10px;
+    border: 1px solid var(--border-color);
+  }
+  .user-avatar {
+    width: 36px; height: 36px;
+    background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 14px; color: white;
+  }
+  .user-name { font-size: 0.8rem; font-weight: 600; }
+  .user-role { font-size: 0.65rem; color: var(--accent-green); text-transform: uppercase; letter-spacing: 1px; }
+
+  /* Main content */
+  .main-content {
+    margin-left: var(--sidebar-width);
+    flex: 1;
+    display: flex; flex-direction: column;
+    min-height: 100vh;
+  }
+
+  /* Topbar */
+  .topbar {
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border-color);
+    padding: 0 24px;
+    height: 64px;
+    display: flex; align-items: center; justify-content: space-between;
+    position: sticky; top: 0; z-index: 50;
+  }
+  .page-title { font-size: 1.1rem; font-weight: 700; letter-spacing: 1px; }
+  .topbar-actions { display: flex; align-items: center; gap: 12px; }
+  .topbar-btn {
+    padding: 7px 16px;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    background: transparent;
+    color: var(--text-primary);
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .topbar-btn:hover { border-color: var(--accent-blue); color: var(--accent-blue); }
+  .topbar-btn.primary {
+    background: linear-gradient(135deg, #003060, #005090);
+    border-color: rgba(0,180,255,0.3);
+    color: var(--accent-blue);
+  }
+
+  /* Content area */
+  .content-area { padding: 24px; flex: 1; }
+
+  /* Stat cards */
+  .stat-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 14px;
+    padding: 22px;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .stat-card:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(0,0,0,0.3); }
+  .stat-card::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  }
+  .stat-card.blue::before { background: linear-gradient(90deg, var(--accent-blue), transparent); }
+  .stat-card.green::before { background: linear-gradient(90deg, var(--accent-green), transparent); }
+  .stat-card.red::before { background: linear-gradient(90deg, var(--accent-red), transparent); }
+  .stat-card.yellow::before { background: linear-gradient(90deg, var(--accent-yellow), transparent); }
+
+  .stat-icon {
+    width: 48px; height: 48px;
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px;
+    margin-bottom: 14px;
+  }
+  .stat-icon.blue { background: rgba(0,180,255,0.1); color: var(--accent-blue); border: 1px solid rgba(0,180,255,0.2); }
+  .stat-icon.green { background: rgba(0,255,136,0.1); color: var(--accent-green); border: 1px solid rgba(0,255,136,0.2); }
+  .stat-icon.red { background: rgba(255,68,68,0.1); color: var(--accent-red); border: 1px solid rgba(255,68,68,0.2); }
+  .stat-icon.yellow { background: rgba(255,204,0,0.1); color: var(--accent-yellow); border: 1px solid rgba(255,204,0,0.2); }
+
+  .stat-value {
+    font-size: 2rem;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+  }
+  .stat-value.blue { color: var(--accent-blue); }
+  .stat-value.green { color: var(--accent-green); }
+  .stat-value.red { color: var(--accent-red); }
+  .stat-value.yellow { color: var(--accent-yellow); }
+
+  .stat-label { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-top: 5px; }
+  .stat-change { font-size: 0.72rem; margin-top: 8px; color: var(--accent-green); }
+
+  /* Chart cards */
+  .chart-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 14px;
+    padding: 22px;
+  }
+  .chart-title {
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 18px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .chart-title::before {
+    content: '';
+    display: inline-block;
+    width: 3px; height: 14px;
+    background: var(--accent-blue);
+    border-radius: 2px;
+  }
+
+  /* Recent table */
+  .cyber-table { width: 100%; border-collapse: separate; border-spacing: 0 4px; }
+  .cyber-table thead th {
+    font-size: 0.65rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    padding: 8px 14px;
+    border-bottom: 1px solid var(--border-color);
+  }
+  .cyber-table tbody tr {
+    background: var(--bg-card2);
+    border-radius: 8px;
+    transition: background 0.2s;
+  }
+  .cyber-table tbody tr:hover { background: rgba(0,180,255,0.05); }
+  .cyber-table tbody td {
+    padding: 12px 14px;
+    font-size: 0.82rem;
+    border-top: 1px solid rgba(255,255,255,0.02);
+    border-bottom: 1px solid rgba(255,255,255,0.02);
+  }
+  .cyber-table tbody td:first-child { border-left: 1px solid rgba(255,255,255,0.02); border-radius: 8px 0 0 8px; }
+  .cyber-table tbody td:last-child { border-right: 1px solid rgba(255,255,255,0.02); border-radius: 0 8px 8px 0; }
+
+  /* Badges */
+  .badge-sev {
+    padding: 3px 10px; border-radius: 20px;
+    font-size: 0.65rem; font-weight: 700; letter-spacing: 1px;
+  }
+  .badge-sev.High { background: rgba(255,68,68,0.15); color: var(--accent-red); border: 1px solid rgba(255,68,68,0.3); }
+  .badge-sev.Medium { background: rgba(255,204,0,0.15); color: var(--accent-yellow); border: 1px solid rgba(255,204,0,0.3); }
+  .badge-sev.Low { background: rgba(0,255,136,0.15); color: var(--accent-green); border: 1px solid rgba(0,255,136,0.3); }
+
+  .badge-status {
+    padding: 3px 10px; border-radius: 20px;
+    font-size: 0.65rem; font-weight: 700;
+  }
+  .badge-status.Pending { background: rgba(255,204,0,0.15); color: var(--accent-yellow); }
+  .badge-status.Under\ Review { background: rgba(0,180,255,0.15); color: var(--accent-blue); }
+  .badge-status.Resolved { background: rgba(0,255,136,0.15); color: var(--accent-green); }
+  .badge-status.Closed { background: rgba(100,100,100,0.15); color: #808080; }
+
+  /* Page sections */
+  .page-section { display: none; }
+  .page-section.active { display: block; }
+
+  /* Complaint form */
+  .complaint-form-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 14px;
+    padding: 28px;
+  }
+  .form-control-cyber {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    color: var(--text-primary);
+    padding: 12px 15px;
+    transition: all 0.2s;
+    font-size: 0.875rem;
+    width: 100%;
+  }
+  .form-control-cyber:focus {
+    outline: none;
+    border-color: var(--accent-blue);
+    box-shadow: 0 0 0 3px rgba(0,180,255,0.1);
+    background: #08082a;
+    color: var(--text-primary);
+  }
+  .form-label-cyber {
+    font-size: 0.72rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 7px;
+    display: block;
+  }
+  .btn-submit {
+    padding: 13px 30px;
+    border: none;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #003060, #006090);
+    color: var(--accent-blue);
+    font-weight: 700;
+    font-size: 0.875rem;
+    letter-spacing: 2px;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: 1px solid rgba(0,180,255,0.3);
+  }
+  .btn-submit:hover { box-shadow: 0 0 20px rgba(0,180,255,0.4); transform: translateY(-1px); }
+
+  /* AI Result card */
+  .ai-result-card {
+    background: var(--bg-card2);
+    border: 1px solid rgba(0,255,136,0.2);
+    border-radius: 12px;
+    padding: 20px;
+    margin-top: 20px;
+    display: none;
+  }
+  .ai-result-card.show { display: block; animation: fadeIn 0.4s ease; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+  .result-item {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border-color);
+  }
+  .result-item:last-child { border-bottom: none; }
+  .result-key { font-size: 0.72rem; letter-spacing: 1px; text-transform: uppercase; color: var(--text-muted); }
+  .result-value { font-size: 0.875rem; font-weight: 600; color: var(--text-primary); }
+
+  .confidence-bar {
+    height: 6px;
+    border-radius: 3px;
+    background: var(--border-color);
+    margin-top: 4px;
+    overflow: hidden;
+  }
+  .confidence-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent-blue), var(--accent-green));
+    border-radius: 3px;
+    transition: width 0.8s ease;
+  }
+
+  /* Search bar */
+  .search-bar {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 10px 16px;
+    color: var(--text-primary);
+    font-size: 0.875rem;
+    width: 280px;
+    outline: none;
+    transition: all 0.2s;
+  }
+  .search-bar:focus { border-color: var(--accent-blue); }
+
+  /* Filter pills */
+  .filter-pill {
+    padding: 5px 14px;
+    border-radius: 20px;
+    border: 1px solid var(--border-color);
+    background: transparent;
+    color: var(--text-muted);
+    font-size: 0.75rem;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .filter-pill:hover, .filter-pill.active {
+    border-color: var(--accent-blue);
+    color: var(--accent-blue);
+    background: rgba(0,180,255,0.08);
+  }
+
+  /* Loading spinner */
+  .cyber-spinner {
+    width: 40px; height: 40px;
+    border: 3px solid var(--border-color);
+    border-top-color: var(--accent-blue);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin: 30px auto;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* Keyword tags */
+  .kw-tag {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 4px;
+    background: rgba(255,68,68,0.1);
+    border: 1px solid rgba(255,68,68,0.3);
+    color: #ff9999;
+    font-size: 0.72rem;
+    margin: 2px;
+    font-family: monospace;
+  }
+
+  /* Prob bar */
+  .prob-row { display: flex; align-items: center; gap: 10px; margin: 5px 0; }
+  .prob-label { font-size: 0.75rem; color: var(--text-muted); width: 120px; white-space: nowrap; }
+  .prob-bar { flex: 1; height: 8px; background: var(--border-color); border-radius: 4px; overflow: hidden; }
+  .prob-fill { height: 100%; background: linear-gradient(90deg, var(--accent-blue), var(--accent-purple)); border-radius: 4px; transition: width 0.5s; }
+  .prob-val { font-size: 0.72rem; color: var(--text-muted); width: 45px; text-align: right; }
+
+  @media (max-width: 768px) {
+    .sidebar { transform: translateX(-100%); }
+    .main-content { margin-left: 0; }
+  }
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<nav class="sidebar">
+  <div class="sidebar-brand">
+    <div class="sidebar-brand-icon"><i class="fas fa-shield-halved"></i></div>
+    <div>
+      <div class="sidebar-brand-text">CYBERGUARD AI X</div>
+      <div class="sidebar-brand-sub">Intelligence Platform</div>
+    </div>
+  </div>
+
+  <div class="nav-section-title">Navigation</div>
+  <div class="nav-item">
+    <a class="nav-link active" onclick="showSection('dashboard')" id="nav-dashboard">
+      <i class="fas fa-gauge-high"></i> Dashboard
+    </a>
+  </div>
+  <div class="nav-item">
+    <a class="nav-link" onclick="showSection('submit')" id="nav-submit">
+      <i class="fas fa-file-circle-plus"></i> Submit Complaint
+    </a>
+  </div>
+  <div class="nav-item">
+    <a class="nav-link" onclick="showSection('history')" id="nav-history">
+      <i class="fas fa-clock-rotate-left"></i> Complaint History
+    </a>
+  </div>
+  <div class="nav-item">
+    <a class="nav-link" onclick="showSection('analytics')" id="nav-analytics">
+      <i class="fas fa-chart-mixed"></i> Analytics
+    </a>
+  </div>
+
+  <div class="nav-section-title admin-only" style="display:none">Admin</div>
+  <div class="nav-item admin-only" style="display:none">
+    <a class="nav-link" onclick="showSection('admin')" id="nav-admin">
+      <i class="fas fa-user-shield"></i> Admin Panel
+      <span class="nav-badge" id="pendingBadge">0</span>
+    </a>
+  </div>
+
+  <div class="nav-section-title">Reports</div>
+  <div class="nav-item">
+    <a class="nav-link" onclick="exportPDF()">
+      <i class="fas fa-file-pdf"></i> Export PDF
+    </a>
+  </div>
+  <div class="nav-item">
+    <a class="nav-link" onclick="exportExcel()">
+      <i class="fas fa-file-excel"></i> Export Excel
+    </a>
+  </div>
+
+  <div class="sidebar-footer">
+    <div class="user-info">
+      <div class="user-avatar" id="userAvatar">A</div>
+      <div>
+        <div class="user-name" id="userNameDisplay">Loading...</div>
+        <div class="user-role" id="userRoleDisplay">User</div>
+      </div>
+    </div>
+    <button class="topbar-btn w-100 mt-2" onclick="logout()" style="justify-content:center">
+      <i class="fas fa-right-from-bracket"></i> Logout
+    </button>
+  </div>
+</nav>
+
+<!-- MAIN CONTENT -->
+<div class="main-content">
+  <!-- Topbar -->
+  <div class="topbar">
+    <div class="page-title" id="pageTitle">
+      <i class="fas fa-gauge-high me-2" style="color: var(--accent-blue);"></i>Dashboard
+    </div>
+    <div class="topbar-actions">
+      <span style="font-size:0.7rem; color:var(--text-muted); font-family:monospace;" id="dateDisplay"></span>
+      <button class="topbar-btn primary" onclick="showSection('submit')">
+        <i class="fas fa-plus"></i> New Complaint
+      </button>
+    </div>
+  </div>
+
+  <div class="content-area">
+
+    <!-- ===== DASHBOARD SECTION ===== -->
+    <div class="page-section active" id="section-dashboard">
+      <!-- Stat Cards -->
+      <div class="row g-3 mb-4">
+        <div class="col-md-3">
+          <div class="stat-card blue">
+            <div class="stat-icon blue"><i class="fas fa-file-lines"></i></div>
+            <div class="stat-value blue" id="totalComplaints">--</div>
+            <div class="stat-label">Total Complaints</div>
+            <div class="stat-change"><i class="fas fa-arrow-trend-up me-1"></i>All time</div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="stat-card red">
+            <div class="stat-icon red"><i class="fas fa-triangle-exclamation"></i></div>
+            <div class="stat-value red" id="highSeverity">--</div>
+            <div class="stat-label">High Severity Cases</div>
+            <div class="stat-change" style="color:var(--accent-red)"><i class="fas fa-circle-exclamation me-1"></i>Critical</div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="stat-card yellow">
+            <div class="stat-icon yellow"><i class="fas fa-credit-card"></i></div>
+            <div class="stat-value yellow" id="fraudCases">--</div>
+            <div class="stat-label">Fraud Cases</div>
+            <div class="stat-change" style="color:var(--accent-yellow)"><i class="fas fa-sack-dollar me-1"></i>Financial + Online</div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="stat-card green">
+            <div class="stat-icon green"><i class="fas fa-users"></i></div>
+            <div class="stat-value green" id="activeUsers">--</div>
+            <div class="stat-label">Active Users</div>
+            <div class="stat-change"><i class="fas fa-check-circle me-1"></i>Registered</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Charts Row -->
+      <div class="row g-3 mb-4">
+        <div class="col-md-8">
+          <div class="chart-card">
+            <div class="chart-title"><i class="fas fa-chart-bar me-2" style="color:var(--accent-blue)"></i>Category Distribution</div>
+            <canvas id="categoryChart" height="200"></canvas>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="chart-card">
+            <div class="chart-title"><i class="fas fa-chart-pie me-2" style="color:var(--accent-yellow)"></i>Severity Distribution</div>
+            <canvas id="severityChart" height="200"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Second charts row -->
+      <div class="row g-3 mb-4">
+        <div class="col-md-6">
+          <div class="chart-card">
+            <div class="chart-title"><i class="fas fa-chart-line me-2" style="color:var(--accent-green)"></i>Monthly Trends</div>
+            <canvas id="trendsChart" height="180"></canvas>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="chart-card">
+            <div class="chart-title"><i class="fas fa-language me-2" style="color:var(--accent-purple)"></i>Language Usage</div>
+            <canvas id="languageChart" height="180"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent Complaints -->
+      <div class="chart-card">
+        <div class="chart-title"><i class="fas fa-clock me-2"></i>Recent Complaints</div>
+        <table class="cyber-table">
+          <thead>
+            <tr>
+              <th>ID</th><th>User</th><th>Category</th><th>Severity</th><th>Status</th><th>Date</th>
+            </tr>
+          </thead>
+          <tbody id="recentTable">
+            <tr><td colspan="6" style="text-align:center; padding:30px; color:var(--text-muted)">
+              <div class="cyber-spinner"></div>
+            </td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div><!-- end dashboard -->
+
+    <!-- ===== SUBMIT COMPLAINT ===== -->
+    <div class="page-section" id="section-submit">
+      <div class="row g-3">
+        <div class="col-md-7">
+          <div class="complaint-form-card">
+            <h5 style="font-size:0.9rem; letter-spacing:2px; text-transform:uppercase; color:var(--text-muted); margin-bottom:22px;">
+              <i class="fas fa-file-circle-plus me-2" style="color:var(--accent-blue)"></i>Submit New Complaint
+            </h5>
+            <div class="mb-4">
+              <label class="form-label-cyber">Complaint Description *</label>
+              <textarea class="form-control-cyber" id="complaintText" rows="6"
+                placeholder="Describe the cybercrime incident in detail. Include dates, amounts, methods, and any evidence available. Supports English, Hindi, and Gujarati."
+                style="resize:vertical; font-size:0.875rem;"></textarea>
+            </div>
+            <div class="mb-4">
+              <label class="form-label-cyber">Language (Optional - Auto-detected)</label>
+              <select class="form-control-cyber" id="complaintLanguage">
+                <option value="">Auto Detect</option>
+                <option value="en">English</option>
+                <option value="hi">Hindi</option>
+                <option value="gu">Gujarati</option>
+              </select>
+            </div>
+            <div style="display:flex; gap:12px; align-items:center; flex-wrap:wrap;">
+              <button class="btn-submit" id="submitBtn" onclick="submitComplaint()">
+                <i class="fas fa-paper-plane me-2"></i>SUBMIT COMPLAINT
+              </button>
+              <button class="topbar-btn" id="analyzeBtn" onclick="analyzeOnly()" style="padding:12px 22px;font-size:.8rem;font-weight:700;letter-spacing:1.5px;border-radius:9px;cursor:pointer;background:linear-gradient(135deg,#0a1a10,#0a2a18);border:1px solid rgba(0,255,136,.3);color:var(--accent-green);transition:all .25s;">
+                <i class="fas fa-brain me-2"></i>ANALYZE ONLY
+              </button>
+            </div>
+          </div>
+      </div>
+
+        <div class="col-md-5">
+          <!-- AI Result -->
+          <div class="ai-result-card" id="aiResultCard">
+            <div style="font-size:0.75rem; letter-spacing:2px; text-transform:uppercase; color:var(--accent-green); margin-bottom:15px;">
+              <i class="fas fa-microchip me-2"></i>AI Analysis Result
+            </div>
+
+            <div class="result-item">
+              <span class="result-key">Predicted Category</span>
+              <span class="result-value" id="resultCategory" style="color:var(--accent-blue)">—</span>
+            </div>
+            <div class="result-item">
+              <span class="result-key">Confidence Score</span>
+              <div style="text-align:right;">
+                <span class="result-value" id="resultConfidence">—</span>
+                <div class="confidence-bar" style="width:140px; margin-top:4px;">
+                  <div class="confidence-fill" id="confBar" style="width:0%"></div>
+                </div>
+              </div>
+            </div>
+            <div class="result-item">
+              <span class="result-key">Severity Level</span>
+              <span class="badge-sev" id="resultSeverity">—</span>
+            </div>
+            <div class="result-item">
+              <span class="result-key">Department</span>
+              <span class="result-value" id="resultDept" style="font-size:0.8rem; max-width:170px; text-align:right;">—</span>
+            </div>
+            <div class="result-item">
+              <span class="result-key">Helpline</span>
+              <span class="result-value" id="resultContact" style="color:var(--accent-green); font-size:0.8rem;">—</span>
+            </div>
+            <div class="result-item">
+              <span class="result-key">Language</span>
+              <span class="result-value" id="resultLang">—</span>
+            </div>
+            <div class="result-item">
+              <span class="result-key">Priority</span>
+              <span class="result-value" id="resultPriority">—</span>
+            </div>
+
+            <!-- Keywords -->
+            <div style="margin-top:14px;">
+              <div style="font-size:0.65rem; letter-spacing:2px; text-transform:uppercase; color:var(--text-muted); margin-bottom:8px;">Detected Keywords</div>
+              <div id="resultKeywords"></div>
+            </div>
+
+            <!-- Probability distribution -->
+            <div style="margin-top:14px;">
+              <div style="font-size:0.65rem; letter-spacing:2px; text-transform:uppercase; color:var(--text-muted); margin-bottom:8px;">Probability Distribution</div>
+              <div id="resultProbDist"></div>
+            </div>
+
+            <!-- Government Sector Recommendations -->
+            <div style="margin-top:18px;" id="govtRecoSection" style="display:none;">
+              <div style="font-size:0.65rem; letter-spacing:2px; text-transform:uppercase; color:var(--accent-yellow); margin-bottom:10px;">
+                <i class="fas fa-landmark me-1"></i> Government Portals to Report
+              </div>
+              <div id="govtRecoList"></div>
+            </div>
+          </div>
+
+          <!-- Tips -->
+          <div class="chart-card mt-3">
+            <div class="chart-title">Tips for Better Analysis</div>
+            <ul style="list-style:none; padding:0; font-size:0.8rem; color:var(--text-muted); line-height:2;">
+              <li><i class="fas fa-check-circle me-2" style="color:var(--accent-green)"></i>Include exact amount lost</li>
+              <li><i class="fas fa-check-circle me-2" style="color:var(--accent-green)"></i>Mention platform/website used</li>
+              <li><i class="fas fa-check-circle me-2" style="color:var(--accent-green)"></i>Provide date and time of incident</li>
+              <li><i class="fas fa-check-circle me-2" style="color:var(--accent-green)"></i>Include any phone numbers or emails</li>
+              <li><i class="fas fa-check-circle me-2" style="color:var(--accent-green)"></i>Minimum 20 characters required</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div><!-- end submit -->
+
+    <!-- ===== COMPLAINT HISTORY ===== -->
+    <div class="page-section" id="section-history">
+      <div class="chart-card">
+        <!-- Filters -->
+        <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-bottom:18px;">
+          <input class="search-bar" type="text" id="searchInput" placeholder="🔍 Search complaints..." oninput="filterComplaints()">
+          <select class="form-control-cyber" id="filterCategory" style="width:auto; padding:8px 12px; font-size:0.8rem;" onchange="filterComplaints()">
+            <option value="">All Categories</option>
+            <option>Phishing</option><option>Hacking</option><option>Malware</option>
+            <option>Online Fraud</option><option>Financial Fraud</option>
+            <option>Identity Theft</option><option>Cyberbullying</option>
+          </select>
+          <select class="form-control-cyber" id="filterSeverity" style="width:auto; padding:8px 12px; font-size:0.8rem;" onchange="filterComplaints()">
+            <option value="">All Severity</option>
+            <option>High</option><option>Medium</option><option>Low</option>
+          </select>
+          <select class="form-control-cyber" id="filterStatus" style="width:auto; padding:8px 12px; font-size:0.8rem;" onchange="filterComplaints()">
+            <option value="">All Status</option>
+            <option>Pending</option><option>Under Review</option><option>Resolved</option><option>Closed</option>
+          </select>
+        </div>
+
+        <table class="cyber-table">
+          <thead>
+            <tr>
+              <th>ID</th><th>Complaint</th><th>Category</th><th>Confidence</th>
+              <th>Severity</th><th>Department</th><th>Status</th><th>Date</th>
+            </tr>
+          </thead>
+          <tbody id="historyTable">
+            <tr><td colspan="8" style="text-align:center; padding:30px; color:var(--text-muted)">
+              <div class="cyber-spinner"></div>
+            </td></tr>
+          </tbody>
+        </table>
+
+        <!-- Pagination -->
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:16px;">
+          <span style="font-size:0.75rem; color:var(--text-muted);" id="paginationInfo">Showing 0 results</span>
+          <div style="display:flex; gap:8px;">
+            <button class="filter-pill" id="prevBtn" onclick="changePage(-1)"><i class="fas fa-chevron-left"></i></button>
+            <span style="font-size:0.75rem; color:var(--text-muted); padding:5px 10px;" id="pageInfo">Page 1</span>
+            <button class="filter-pill" id="nextBtn" onclick="changePage(1)"><i class="fas fa-chevron-right"></i></button>
+          </div>
+        </div>
+      </div>
+    </div><!-- end history -->
+
+    <!-- ===== ANALYTICS ===== -->
+    <div class="page-section" id="section-analytics">
+      <div class="row g-3 mb-4">
+        <div class="col-md-6">
+          <div class="chart-card">
+            <div class="chart-title">Category Distribution (Bar)</div>
+            <canvas id="analyticsCatBar" height="220"></canvas>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="chart-card">
+            <div class="chart-title">Complaint Share (Pie)</div>
+            <canvas id="analyticsCatPie" height="220"></canvas>
+          </div>
+        </div>
+      </div>
+      <div class="row g-3 mb-4">
+        <div class="col-md-4">
+          <div class="chart-card">
+            <div class="chart-title">Severity (Donut)</div>
+            <canvas id="analyticsSevDonut" height="220"></canvas>
+          </div>
+        </div>
+        <div class="col-md-8">
+          <div class="chart-card">
+            <div class="chart-title">Monthly Trend (Line)</div>
+            <canvas id="analyticsMonthLine" height="220"></canvas>
+          </div>
+        </div>
+      </div>
+      <div class="row g-3">
+        <div class="col-md-6">
+          <div class="chart-card">
+            <div class="chart-title">Department-wise Cases (Horizontal Bar)</div>
+            <canvas id="analyticsDeptBar" height="220"></canvas>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="chart-card">
+            <div class="chart-title">Language Usage</div>
+            <canvas id="analyticsLangPie" height="220"></canvas>
+          </div>
+        </div>
+      </div>
+    </div><!-- end analytics -->
+
+    <!-- ===== ADMIN PANEL ===== -->
+    <div class="page-section" id="section-admin">
+      <div class="row g-3 mb-3">
+        <div class="col-md-3">
+          <div class="stat-card blue">
+            <div class="stat-icon blue"><i class="fas fa-file-lines"></i></div>
+            <div class="stat-value blue" id="adminTotal">--</div>
+            <div class="stat-label">Total Complaints</div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="stat-card yellow">
+            <div class="stat-icon yellow"><i class="fas fa-hourglass-half"></i></div>
+            <div class="stat-value yellow" id="adminPending">--</div>
+            <div class="stat-label">Pending</div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="stat-card green">
+            <div class="stat-icon green"><i class="fas fa-check-double"></i></div>
+            <div class="stat-value green" id="adminResolved">--</div>
+            <div class="stat-label">Resolved</div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="stat-card red">
+            <div class="stat-icon red"><i class="fas fa-exclamation-triangle"></i></div>
+            <div class="stat-value red" id="adminHigh">--</div>
+            <div class="stat-label">High Severity</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="chart-card">
+        <div class="chart-title" style="justify-content:space-between;">
+          <span><i class="fas fa-list me-2"></i>All Complaints Management</span>
+          <div style="display:flex;gap:8px;">
+            <button class="topbar-btn" onclick="exportPDF()"><i class="fas fa-file-pdf me-1"></i>PDF</button>
+            <button class="topbar-btn" onclick="exportExcel()"><i class="fas fa-file-excel me-1"></i>Excel</button>
+          </div>
+        </div>
+        <table class="cyber-table">
+          <thead>
+            <tr>
+              <th>ID</th><th>User</th><th>Category</th><th>Severity</th>
+              <th>Department</th><th>Status</th><th>Date</th><th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="adminTable">
+            <tr><td colspan="8" style="text-align:center;padding:30px;color:var(--text-muted)"><div class="cyber-spinner"></div></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div><!-- end admin -->
+
+  </div><!-- end content-area -->
+</div><!-- end main-content -->
+
+<script>
+const API = '/api';
+let token = localStorage.getItem('cg_token');
+let currentUser = JSON.parse(localStorage.getItem('cg_user') || '{}');
+let currentPage = 1;
+let totalPages = 1;
+let charts = {};
+
+// Auth check
+if (!token) window.location.href = '/';
+
+// Init
+document.addEventListener('DOMContentLoaded', () => {
+  initUser();
+  updateDate();
+  loadDashboard();
+});
+
+function initUser() {
+  if (currentUser.name) {
+    document.getElementById('userNameDisplay').textContent = currentUser.name;
+    document.getElementById('userRoleDisplay').textContent = currentUser.role || 'user';
+    document.getElementById('userAvatar').textContent = currentUser.name[0].toUpperCase();
+  }
+  if (currentUser.role === 'admin') {
+    document.querySelectorAll('.admin-only').forEach(el => el.style.display = '');
+  }
+}
+
+function updateDate() {
+  document.getElementById('dateDisplay').textContent = new Date().toLocaleString('en-IN', {timeZone:'Asia/Kolkata'});
+  setTimeout(updateDate, 1000);
+}
+
+function authHeaders() {
+  return { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` };
+}
+
+function logout() {
+  localStorage.removeItem('cg_token');
+  localStorage.removeItem('cg_user');
+  window.location.href = '/';
+}
+
+function showSection(name) {
+  document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+  document.getElementById(`section-${name}`).classList.add('active');
+  document.getElementById(`nav-${name}`).classList.add('active');
+
+  const titles = {
+    dashboard: '<i class="fas fa-gauge-high me-2" style="color:var(--accent-blue)"></i>Dashboard',
+    submit: '<i class="fas fa-file-circle-plus me-2" style="color:var(--accent-blue)"></i>Submit Complaint',
+    history: '<i class="fas fa-clock-rotate-left me-2" style="color:var(--accent-blue)"></i>Complaint History',
+    analytics: '<i class="fas fa-chart-mixed me-2" style="color:var(--accent-blue)"></i>Analytics',
+    admin: '<i class="fas fa-user-shield me-2" style="color:var(--accent-blue)"></i>Admin Panel'
+  };
+  document.getElementById('pageTitle').innerHTML = titles[name] || name;
+
+  if (name === 'history') loadHistory();
+  if (name === 'analytics') loadAnalytics();
+  if (name === 'admin') loadAdmin();
+}
+
+// ===== DASHBOARD =====
+async function loadDashboard() {
+  try {
+    const [overview, catDist, sevDist, monthly, langDist] = await Promise.all([
+      fetch(`${API}/analytics/overview`, {headers: authHeaders()}).then(r => r.json()),
+      fetch(`${API}/analytics/category-distribution`, {headers: authHeaders()}).then(r => r.json()),
+      fetch(`${API}/analytics/severity-distribution`, {headers: authHeaders()}).then(r => r.json()),
+      fetch(`${API}/analytics/monthly-trends`, {headers: authHeaders()}).then(r => r.json()),
+      fetch(`${API}/analytics/language-distribution`, {headers: authHeaders()}).then(r => r.json()),
+    ]);
+
+    // Stats
+    animateCount('totalComplaints', overview.total_complaints || 0);
+    animateCount('highSeverity', overview.high_severity || 0);
+    animateCount('fraudCases', overview.fraud_cases || 0);
+    animateCount('activeUsers', overview.active_users || 0);
+
+    // Pending badge
+    document.getElementById('pendingBadge').textContent = overview.pending_cases || 0;
+
+    // Recent table
+    const tbody = document.getElementById('recentTable');
+    if (overview.recent_complaints && overview.recent_complaints.length > 0) {
+      tbody.innerHTML = overview.recent_complaints.map(c => `
+        <tr>
+          <td style="font-family:monospace; color:var(--text-muted)">#${c.id}</td>
+          <td>${c.user_name || '—'}</td>
+          <td><span style="color:var(--accent-blue); font-size:0.8rem">${c.category || '—'}</span></td>
+          <td><span class="badge-sev ${c.severity}">${c.severity}</span></td>
+          <td><span class="badge-status ${c.status}">${c.status}</span></td>
+          <td style="color:var(--text-muted); font-size:0.75rem">${formatDate(c.created_at)}</td>
+        </tr>
+      `).join('');
+    } else {
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:20px">No complaints yet</td></tr>';
+    }
+
+    // Charts
+    drawCategoryBar('categoryChart', catDist.data || []);
+    drawSeverityDonut('severityChart', sevDist.data || []);
+    drawMonthlyLine('trendsChart', monthly.data || []);
+    drawLanguagePie('languageChart', langDist.data || []);
+
+  } catch(e) { console.error('Dashboard load error:', e); }
+}
+
+function animateCount(id, target) {
+  let start = 0;
+  const step = Math.ceil(target / 40);
+  const el = document.getElementById(id);
+  const timer = setInterval(() => {
+    start = Math.min(start + step, target);
+    el.textContent = start;
+    if (start >= target) clearInterval(timer);
+  }, 30);
+}
+
+// ===== CHARTS =====
+const chartDefaults = {
+  responsive: true,
+  plugins: { legend: { labels: { color: '#7070a0', font: { size: 11 } } } },
+  scales: {}
+};
+
+function chartColors() {
+  return ['#00b4ff','#00ff88','#ff4444','#ffcc00','#aa66ff','#ff8800','#00ffff'];
+}
+
+function drawCategoryBar(id, data) {
+  if (charts[id]) charts[id].destroy();
+  const ctx = document.getElementById(id).getContext('2d');
+  charts[id] = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: data.map(d => d.category),
+      datasets: [{ label: 'Complaints', data: data.map(d => d.count), backgroundColor: chartColors(), borderRadius: 6 }]
+    },
+    options: { ...chartDefaults, plugins: { legend: { display: false } }, scales: {
+      x: { ticks: { color: '#7070a0', font:{size:10} }, grid: { color: '#1a1a3e' } },
+      y: { ticks: { color: '#7070a0' }, grid: { color: '#1a1a3e' } }
+    }}
+  });
+}
+
+function drawSeverityDonut(id, data) {
+  if (charts[id]) charts[id].destroy();
+  const ctx = document.getElementById(id).getContext('2d');
+  const colorMap = { 'High': '#ff4444', 'Medium': '#ffcc00', 'Low': '#00ff88' };
+  charts[id] = new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels: data.map(d => d.severity),
+      datasets: [{ data: data.map(d => d.count), backgroundColor: data.map(d => colorMap[d.severity] || '#7070a0'), borderWidth: 0 }]
+    },
+    options: { cutout: '65%', plugins: { legend: { position: 'bottom', labels: { color: '#7070a0', font:{size:11} } } } }
+  });
+}
+
+function drawMonthlyLine(id, data) {
+  if (charts[id]) charts[id].destroy();
+  const ctx = document.getElementById(id).getContext('2d');
+  charts[id] = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: data.map(d => d.month),
+      datasets: [
+        { label: 'Total', data: data.map(d => d.count), borderColor: '#00b4ff', backgroundColor: 'rgba(0,180,255,0.1)', fill: true, tension: 0.4 },
+        { label: 'High Severity', data: data.map(d => d.high_count), borderColor: '#ff4444', backgroundColor: 'rgba(255,68,68,0.1)', fill: true, tension: 0.4 }
+      ]
+    },
+    options: { ...chartDefaults, scales: {
+      x: { ticks: { color: '#7070a0', font:{size:10} }, grid: { color: '#1a1a3e' } },
+      y: { ticks: { color: '#7070a0' }, grid: { color: '#1a1a3e' } }
+    }}
+  });
+}
+
+function drawLanguagePie(id, data) {
+  if (charts[id]) charts[id].destroy();
+  const ctx = document.getElementById(id).getContext('2d');
+  charts[id] = new Chart(ctx, {
+    type: 'pie',
+    data: {
+      labels: data.map(d => d.language_name),
+      datasets: [{ data: data.map(d => d.count), backgroundColor: ['#00b4ff','#ff8800','#aa66ff'], borderWidth: 0 }]
+    },
+    options: { plugins: { legend: { position: 'bottom', labels: { color: '#7070a0', font:{size:11} } } } }
+  });
+}
+
+// ===== SUBMIT COMPLAINT =====
+async function submitComplaint() {
+  const text = document.getElementById('complaintText').value.trim();
+  const lang = document.getElementById('complaintLanguage').value;
+  if (!text || text.length < 20) { alert('Complaint must be at least 20 characters.'); return; }
+
+  const btn = document.getElementById('submitBtn');
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>SUBMITTING...';
+  btn.disabled = true;
+
+  try {
+    const res = await fetch(`${API}/complaints/submit`, {
+      method: 'POST',
+      headers: authHeaders(),
+      body: JSON.stringify({ complaint_text: text, language: lang || null })
+    });
+    const data = await res.json();
+    if (res.ok) {
+      showAIResult(data.prediction);
+      // Show success toast instead of alert
+      const toast = document.createElement('div');
+      toast.style.cssText = 'position:fixed;bottom:28px;right:28px;background:#0a2a18;border:1px solid rgba(0,255,136,.4);border-radius:12px;padding:14px 20px;color:#00ff88;font-size:.82rem;font-weight:700;z-index:9999;box-shadow:0 8px 32px rgba(0,0,0,.5);animation:slideUp .3s ease;';
+      toast.innerHTML = `<i class="fas fa-check-circle me-2"></i>Complaint #${data.complaint_id} submitted successfully!`;
+      document.body.appendChild(toast);
+      setTimeout(() => toast.remove(), 4000);
+      document.getElementById('complaintText').value = '';
+    } else {
+      alert(data.error || 'Submission failed');
+    }
+  } catch(e) { alert('Server error. Try again.'); }
+
+  btn.innerHTML = '<i class="fas fa-paper-plane me-2"></i>SUBMIT COMPLAINT';
+  btn.disabled = false;
+}
+
+// ===== ANALYZE ONLY (no save to DB) =====
+async function analyzeOnly() {
+  const text = document.getElementById('complaintText').value.trim();
+  if (!text || text.length < 10) {
+    alert('Please enter at least 10 characters to analyze.');
+    return;
+  }
+
+  const btn = document.getElementById('analyzeBtn');
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>ANALYZING...';
+  btn.disabled = true;
+
+  try {
+    const res = await fetch(`${API}/ai/predict`, {
+      method: 'POST',
+      headers: authHeaders(),
+      body: JSON.stringify({ text: text })
+    });
+    const data = await res.json();
+    if (res.ok && data.result) {
+      showAIResult(data.result);
+    } else {
+      alert(data.error || 'Analysis failed. Make sure the ML model is trained (run train_model.py).');
+    }
+  } catch(e) {
+    alert('Server error during analysis. Please try again.');
+  }
+
+  btn.innerHTML = '<i class="fas fa-brain me-2"></i>ANALYZE ONLY';
+  btn.disabled = false;
+}
+
+function showAIResult(r) {
+  document.getElementById('resultCategory').textContent = r.category || '—';
+  document.getElementById('resultConfidence').textContent = `${r.confidence || 0}%`;
+  document.getElementById('confBar').style.width = `${r.confidence || 0}%`;
+  const sevEl = document.getElementById('resultSeverity');
+  sevEl.textContent = r.severity || '—';
+  sevEl.className = `badge-sev ${r.severity}`;
+  document.getElementById('resultDept').textContent = r.department || '—';
+  document.getElementById('resultContact').textContent = r.contact || '—';
+  document.getElementById('resultLang').textContent = r.language_name || r.language || '—';
+  document.getElementById('resultPriority').textContent = r.priority || '—';
+
+  // Keywords
+  const kwEl = document.getElementById('resultKeywords');
+  const kws = r.top_keywords || [];
+  kwEl.innerHTML = kws.length ? kws.map(k => `<span class="kw-tag">${k}</span>`).join('') : '<span style="color:var(--text-muted);font-size:0.75rem">No specific keywords detected</span>';
+
+  // Prob dist
+  const probEl = document.getElementById('resultProbDist');
+  const probs = r.probability_distribution || {};
+  probEl.innerHTML = Object.entries(probs).map(([cat, pct]) => `
+    <div class="prob-row">
+      <span class="prob-label">${cat}</span>
+      <div class="prob-bar"><div class="prob-fill" style="width:${pct}%"></div></div>
+      <span class="prob-val">${pct}%</span>
+    </div>
+  `).join('');
+
+  // Government sector recommendations
+  const GOVT_SECTORS = {
+    'Financial Fraud':   [
+      { name: 'National Cyber Crime Reporting Portal', url: 'https://cybercrime.gov.in', icon: '🛡️', helpline: '1930', badge: 'PRIMARY' },
+      { name: 'RBI Banking Ombudsman', url: 'https://rbi.org.in/Scripts/Complaints.aspx', icon: '🏦', helpline: '14448', badge: 'RBI' },
+      { name: 'NPCI Dispute Portal', url: 'https://www.npci.org.in', icon: '💳', helpline: '1800-120-1740', badge: 'UPI/NPCI' },
+      { name: 'Sanchar Saathi — Fraud IMEI Block', url: 'https://sancharsaathi.gov.in', icon: '📱', helpline: '1800-110-420', badge: 'DoT' },
+    ],
+    'Phishing':          [
+      { name: 'National Cyber Crime Reporting Portal', url: 'https://cybercrime.gov.in', icon: '🛡️', helpline: '1930', badge: 'PRIMARY' },
+      { name: 'CERT-In Incident Reporting', url: 'https://www.cert-in.org.in', icon: '🔐', helpline: '1800-11-4949', badge: 'CERT-IN' },
+      { name: 'Report Phishing to TRAI', url: 'https://trai.gov.in', icon: '📡', helpline: '1909', badge: 'TRAI' },
+    ],
+    'Hacking':           [
+      { name: 'CERT-In (Indian CERT)', url: 'https://www.cert-in.org.in', icon: '🔐', helpline: '1800-11-4949', badge: 'CERT-IN' },
+      { name: 'National Cyber Crime Reporting Portal', url: 'https://cybercrime.gov.in', icon: '🛡️', helpline: '1930', badge: 'PRIMARY' },
+      { name: 'MHA Cyber Wing', url: 'https://www.mha.gov.in', icon: '🏛️', helpline: '011-23438091', badge: 'MHA' },
+    ],
+    'Malware':           [
+      { name: 'CERT-In Malware Reporting', url: 'https://www.cert-in.org.in', icon: '🔐', helpline: '1800-11-4949', badge: 'CERT-IN' },
+      { name: 'National Cyber Crime Reporting Portal', url: 'https://cybercrime.gov.in', icon: '🛡️', helpline: '1930', badge: 'PRIMARY' },
+    ],
+    'Identity Theft':    [
+      { name: 'National Cyber Crime Reporting Portal', url: 'https://cybercrime.gov.in', icon: '🛡️', helpline: '1930', badge: 'PRIMARY' },
+      { name: 'UIDAI — Aadhaar Fraud', url: 'https://uidai.gov.in', icon: '🪪', helpline: '1947', badge: 'UIDAI' },
+      { name: 'Income Tax Grievance Portal', url: 'https://www.incometax.gov.in', icon: '📋', helpline: '1800-103-0025', badge: 'IT DEPT' },
+      { name: 'Sanchar Saathi — SIM Swap Fraud', url: 'https://sancharsaathi.gov.in', icon: '📱', helpline: '1800-110-420', badge: 'DoT' },
+    ],
+    'Cyberbullying':     [
+      { name: 'National Cyber Crime Reporting Portal', url: 'https://cybercrime.gov.in', icon: '🛡️', helpline: '1930', badge: 'PRIMARY' },
+      { name: 'NCW — Online Violence vs Women', url: 'https://ncwapps.nic.in', icon: '👩‍⚖️', helpline: '7827170170', badge: 'NCW' },
+      { name: 'Women Helpline', url: 'https://wcd.nic.in', icon: '🆘', helpline: '181', badge: 'WCD' },
+      { name: 'iCall Mental Health Helpline', url: 'https://icallhelpline.org', icon: '💬', helpline: '9152987821', badge: 'ICALL' },
+    ],
+    'Online Fraud':      [
+      { name: 'National Cyber Crime Reporting Portal', url: 'https://cybercrime.gov.in', icon: '🛡️', helpline: '1930', badge: 'PRIMARY' },
+      { name: 'National Consumer Helpline', url: 'https://consumerhelpline.gov.in', icon: '🧾', helpline: '1800-11-4000', badge: 'NCH' },
+      { name: 'TRAI — Fraud Call Reporting', url: 'https://trai.gov.in', icon: '📡', helpline: '1909', badge: 'TRAI' },
+    ],
+  };
+  const sectors = GOVT_SECTORS[r.category] || [{ name: 'National Cyber Crime Reporting Portal', url: 'https://cybercrime.gov.in', icon: '🛡️', helpline: '1930', badge: 'PRIMARY' }];
+  const govtEl = document.getElementById('govtRecoList');
+  govtEl.innerHTML = sectors.map(s => `
+    <div style="background:rgba(255,204,0,0.05);border:1px solid rgba(255,204,0,0.2);border-radius:8px;padding:10px 12px;margin-bottom:8px;">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+        <span style="font-size:1rem;">${s.icon}</span>
+        <a href="${s.url}" target="_blank" style="color:var(--accent-yellow);font-size:0.78rem;font-weight:700;text-decoration:none;flex:1;">${s.name}</a>
+        <span style="font-size:.55rem;font-weight:700;letter-spacing:1px;padding:2px 6px;background:rgba(255,204,0,.12);color:var(--accent-yellow);border-radius:6px;">${s.badge||''}</span>
+      </div>
+      <div style="font-size:0.7rem;color:var(--text-muted);padding-left:28px;">
+        <i class="fas fa-phone me-1"></i>Helpline: <span style="color:var(--accent-green);font-weight:600;">${s.helpline}</span>
+        &nbsp;·&nbsp;<a href="${s.url}" target="_blank" style="color:var(--accent-blue);font-size:.68rem;"><i class="fas fa-external-link-alt me-1"></i>Visit Portal</a>
+      </div>
+    </div>
+  `).join('');
+  document.getElementById('govtRecoSection').style.display = 'block';
+
+  document.getElementById('aiResultCard').classList.add('show');
+}
+
+// ===== HISTORY =====
+async function loadHistory() {
+  const search = document.getElementById('searchInput')?.value || '';
+  const cat = document.getElementById('filterCategory')?.value || '';
+  const sev = document.getElementById('filterSeverity')?.value || '';
+  const sta = document.getElementById('filterStatus')?.value || '';
+  const params = new URLSearchParams({ page: currentPage, per_page: 15 });
+  if (search) params.set('search', search);
+  if (cat) params.set('category', cat);
+  if (sev) params.set('severity', sev);
+  if (sta) params.set('status', sta);
+
+  try {
+    const res = await fetch(`${API}/complaints/?${params}`, {headers: authHeaders()});
+    const data = await res.json();
+    renderHistoryTable(data.complaints || []);
+    totalPages = data.pages || 1;
+    document.getElementById('paginationInfo').textContent = `Showing ${(data.complaints||[]).length} of ${data.total || 0} results`;
+    document.getElementById('pageInfo').textContent = `Page ${currentPage} of ${totalPages}`;
+  } catch(e) { console.error(e); }
+}
+
+function renderHistoryTable(complaints) {
+  const tbody = document.getElementById('historyTable');
+  if (!complaints.length) {
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--text-muted);padding:30px">No complaints found</td></tr>';
+    return;
+  }
+  tbody.innerHTML = complaints.map(c => `
+    <tr>
+      <td style="font-family:monospace; color:var(--text-muted)">#${c.id}</td>
+      <td style="max-width:180px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:0.8rem;">${c.complaint_text || ''}</td>
+      <td><span style="color:var(--accent-blue); font-size:0.78rem">${c.category || '—'}</span></td>
+      <td style="font-family:monospace; font-size:0.78rem">${c.confidence_score ? c.confidence_score.toFixed(1)+'%' : '—'}</td>
+      <td><span class="badge-sev ${c.severity}">${c.severity}</span></td>
+      <td style="font-size:0.75rem; color:var(--text-muted); max-width:140px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap">${c.department || '—'}</td>
+      <td><span class="badge-status ${c.status}">${c.status}</span></td>
+      <td style="color:var(--text-muted); font-size:0.73rem">${formatDate(c.created_at)}</td>
+    </tr>
+  `).join('');
+}
+
+function filterComplaints() { currentPage = 1; loadHistory(); }
+function changePage(dir) {
+  currentPage = Math.max(1, Math.min(totalPages, currentPage + dir));
+  loadHistory();
+}
+
+// ===== ANALYTICS =====
+async function loadAnalytics() {
+  try {
+    const [cat, sev, monthly, dept, lang] = await Promise.all([
+      fetch(`${API}/analytics/category-distribution`, {headers: authHeaders()}).then(r => r.json()),
+      fetch(`${API}/analytics/severity-distribution`, {headers: authHeaders()}).then(r => r.json()),
+      fetch(`${API}/analytics/monthly-trends`, {headers: authHeaders()}).then(r => r.json()),
+      fetch(`${API}/analytics/department-distribution`, {headers: authHeaders()}).then(r => r.json()),
+      fetch(`${API}/analytics/language-distribution`, {headers: authHeaders()}).then(r => r.json()),
+    ]);
+
+    drawCategoryBar('analyticsCatBar', cat.data || []);
+
+    // Pie
+    if (charts['analyticsCatPie']) charts['analyticsCatPie'].destroy();
+    const ctx2 = document.getElementById('analyticsCatPie').getContext('2d');
+    charts['analyticsCatPie'] = new Chart(ctx2, {
+      type: 'pie',
+      data: { labels: (cat.data||[]).map(d => d.category), datasets: [{ data: (cat.data||[]).map(d => d.count), backgroundColor: chartColors(), borderWidth: 0 }] },
+      options: { plugins: { legend: { position: 'right', labels: { color: '#7070a0', font:{size:10} } } } }
+    });
+
+    drawSeverityDonut('analyticsSevDonut', sev.data || []);
+    drawMonthlyLine('analyticsMonthLine', monthly.data || []);
+
+    // Horizontal dept bar
+    if (charts['analyticsDeptBar']) charts['analyticsDeptBar'].destroy();
+    const ctx3 = document.getElementById('analyticsDeptBar').getContext('2d');
+    charts['analyticsDeptBar'] = new Chart(ctx3, {
+      type: 'bar',
+      data: { labels: (dept.data||[]).map(d => d.department), datasets: [{ label: 'Cases', data: (dept.data||[]).map(d => d.count), backgroundColor: '#00b4ff', borderRadius: 4 }] },
+      options: { indexAxis: 'y', plugins: { legend: { display: false } }, scales: {
+        x: { ticks: { color: '#7070a0' }, grid: { color: '#1a1a3e' } },
+        y: { ticks: { color: '#7070a0', font:{size:10} }, grid: { color: '#1a1a3e' } }
+      }}
+    });
+
+    drawLanguagePie('analyticsLangPie', lang.data || []);
+
+  } catch(e) { console.error(e); }
+}
+
+// ===== ADMIN =====
+async function loadAdmin() {
+  if (currentUser.role !== 'admin') return;
+  try {
+    const [overview, complaints] = await Promise.all([
+      fetch(`${API}/analytics/overview`, {headers: authHeaders()}).then(r => r.json()),
+      fetch(`${API}/complaints/?per_page=50`, {headers: authHeaders()}).then(r => r.json()),
+    ]);
+
+    animateCount('adminTotal', overview.total_complaints || 0);
+    animateCount('adminPending', overview.pending_cases || 0);
+    animateCount('adminResolved', overview.resolved_cases || 0);
+    animateCount('adminHigh', overview.high_severity || 0);
+
+    const tbody = document.getElementById('adminTable');
+    const list = complaints.complaints || [];
+    if (!list.length) {
+      tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--text-muted);padding:20px">No complaints</td></tr>';
+      return;
+    }
+    tbody.innerHTML = list.map(c => `
+      <tr>
+        <td style="font-family:monospace;color:var(--text-muted)">#${c.id}</td>
+        <td style="font-size:0.8rem">${c.user_name||'—'}</td>
+        <td style="color:var(--accent-blue);font-size:0.78rem">${c.category||'—'}</td>
+        <td><span class="badge-sev ${c.severity}">${c.severity}</span></td>
+        <td style="font-size:0.73rem;color:var(--text-muted)">${c.department||'—'}</td>
+        <td><span class="badge-status ${c.status}">${c.status}</span></td>
+        <td style="color:var(--text-muted);font-size:0.73rem">${formatDate(c.created_at)}</td>
+        <td>
+          <select onchange="updateStatus(${c.id}, this.value)" style="background:var(--bg-secondary);border:1px solid var(--border-color);color:var(--text-primary);border-radius:6px;padding:4px 8px;font-size:0.72rem;cursor:pointer;">
+            <option ${c.status==='Pending'?'selected':''}>Pending</option>
+            <option ${c.status==='Under Review'?'selected':''}>Under Review</option>
+            <option ${c.status==='Resolved'?'selected':''}>Resolved</option>
+            <option ${c.status==='Closed'?'selected':''}>Closed</option>
+          </select>
+        </td>
+      </tr>
+    `).join('');
+  } catch(e) { console.error(e); }
+}
+
+async function updateStatus(id, status) {
+  try {
+    await fetch(`${API}/complaints/${id}/status`, {
+      method: 'PUT',
+      headers: authHeaders(),
+      body: JSON.stringify({ status })
+    });
+  } catch(e) { console.error(e); }
+}
+
+// ===== REPORTS =====
+async function exportPDF() {
+  const a = document.createElement('a');
+  a.href = `${API}/reports/pdf`;
+  const res = await fetch(`${API}/reports/pdf`, {headers: authHeaders()});
+  const blob = await res.blob();
+  a.href = URL.createObjectURL(blob);
+  a.download = `cyberguard_report_${Date.now()}.pdf`;
+  a.click();
+}
+
+async function exportExcel() {
+  const res = await fetch(`${API}/reports/excel`, {headers: authHeaders()});
+  const blob = await res.blob();
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `cyberguard_report_${Date.now()}.xlsx`;
+  a.click();
+}
+
+// Utils
+function formatDate(dt) {
+  if (!dt) return '—';
+  try { return new Date(dt).toLocaleDateString('en-IN', {day:'2-digit',month:'short',year:'numeric'}); }
+  catch { return dt.toString().slice(0,10); }
+}
+</script>
+</body>
+</html>
